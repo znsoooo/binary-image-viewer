@@ -1,7 +1,10 @@
+import os
 import sys
 import itertools
 
 import wx
+
+__title__ = 'Binary Image Viewer'
 
 
 class MyFileDropTarget(wx.FileDropTarget):
@@ -105,9 +108,11 @@ class MyPanel(wx.Panel):
             self.bmp.SetBitmap(wx.Bitmap(img))
             self.bmp.Show()
             self.Layout()
+            self.parent.SetTitle(f'{os.path.basename(path)} - {__title__}')
 
         except Exception:
             self.bmp.Hide()
+            self.parent.SetTitle(__title__)
 
 
 class MyFrame(wx.Frame):
