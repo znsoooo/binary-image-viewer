@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 import itertools
 
 import wx
@@ -24,8 +25,10 @@ class MyPanel(wx.Panel):
         self.parent = parent
         self.bmp = wx.StaticBitmap(self)
 
+        self.last_path = None
+        self.last_data = None
+
         self.path     = wx.TextCtrl(self)
-        self.offset   = wx.SpinCtrl(self, -1, '0', max=wx.INT32_MAX, size=(80, -1))
         self.width    = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
         self.height   = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
         self.channels = wx.SpinCtrl(self, -1, '3', min=1, max=4, size=(80, -1))
@@ -36,8 +39,6 @@ class MyPanel(wx.Panel):
             sizer.Add(wx.StaticText(self, -1, label), 0, wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border)
 
         box1 = wx.BoxSizer()
-        AddLabel(box1, 'Offset:', border)
-        box1.Add(self.offset)
         AddLabel(box1, 'Width:', border)
         box1.Add(self.width)
         AddLabel(box1, 'Height:', border)
@@ -60,7 +61,6 @@ class MyPanel(wx.Panel):
         self.SetSizer(box)
 
         self.path.Bind(wx.EVT_TEXT, self.ViewImage)
-        self.offset.Bind(wx.EVT_TEXT, self.ViewImage)
         self.width.Bind(wx.EVT_TEXT, self.ViewImage)
         self.height.Bind(wx.EVT_TEXT, self.ViewImage)
         self.channels.Bind(wx.EVT_TEXT, self.ViewImage)
@@ -89,30 +89,42 @@ class MyPanel(wx.Panel):
 
     def ViewImage(self, evt):
         path = self.path.GetValue().strip('\'"')
-        offset = int(self.offset.GetValue())
         width = int(self.width.GetValue())
         height = int(self.height.GetValue())
         channels = int(self.channels.GetValue())
 
-        try:
-            with open(path, 'rb') as f:
-                data = f.read()
+        if path == self.last_path:
+            data = self.last_data
+        else:
+            try:
+                with open(path, 'rb') as f:
+                    data = f.read()
+                self.last_data = data
+                self.last_path = path
+            except Exception:
+                self.bmp.Hide()
+                self.parent.SetTitle(__title__)
+                return
 
-            diff_size = offset + width * height * channels - len(data)
-            data = data[offset:] + b'\0' * diff_size
+        data_size = len(data)
+        if data_size != width * height * channels:
+            if self.height.HasFocus():
+                width = math.ceil(data_size / height / channels)
+                self.width.SetValue(width)
+            else:
+                height = math.ceil(data_size / width / channels)
+                self.height.SetValue(height)
+            diff_size = width * height * channels - data_size
+            data = data + b'\0' * diff_size
 
-            if channels == 1:
-                data = bytes(itertools.chain.from_iterable(zip(data, data, data)))
+        if channels == 1:
+            data = bytes(itertools.chain.from_iterable(zip(data, data, data)))
 
-            img = wx.Image(width, height, data)
-            self.bmp.SetBitmap(wx.Bitmap(img))
-            self.bmp.Show()
-            self.Layout()
-            self.parent.SetTitle(f'{os.path.basename(path)} - {__title__}')
-
-        except Exception:
-            self.bmp.Hide()
-            self.parent.SetTitle(__title__)
+        img = wx.Image(width, height, data)
+        self.bmp.SetBitmap(wx.Bitmap(img))
+        self.bmp.Show()
+        self.Layout()
+        self.parent.SetTitle(f'{os.path.basename(path)} - {__title__}')
 
 
 class MyFrame(wx.Frame):
