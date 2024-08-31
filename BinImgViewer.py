@@ -12,7 +12,7 @@ class MyPanel(wx.Panel):
         self.offset   = wx.SpinCtrl(self, -1, '0', max=wx.INT32_MAX, size=(80, -1))
         self.width    = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
         self.height   = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
-        self.channels = wx.SpinCtrl(self, -1, '1', min=1, max=4, size=(80, -1))
+        self.channels = wx.SpinCtrl(self, -1, '3', min=1, max=4, size=(80, -1))
 
         border = 4
 
@@ -36,13 +36,19 @@ class MyPanel(wx.Panel):
 
         self.SetSizer(box)
 
+        self.path.Bind(wx.EVT_TEXT, self.ViewImage)
+        self.offset.Bind(wx.EVT_TEXT, self.ViewImage)
+        self.width.Bind(wx.EVT_TEXT, self.ViewImage)
+        self.height.Bind(wx.EVT_TEXT, self.ViewImage)
+        self.channels.Bind(wx.EVT_TEXT, self.ViewImage)
+
     def OnOpen(self, evt):
         dlg = wx.FileDialog(
                 self, 'Open file', wildcard='Binary file (*.bin)|*.bin',
                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             self.path.SetValue(dlg.GetPath())
-            self.ViewImage()
+            self.ViewImage(None)
 
     def OnSave(self, evt):
         dlg = wx.FileDialog(
@@ -58,14 +64,27 @@ class MyPanel(wx.Panel):
     def OnNext(self, evt):
         print('Show next image')
 
-    def ViewImage(self):
-        path = self.path.GetValue()
+    def ViewImage(self, evt):
+        path = self.path.GetValue().strip('\'"')
         offset = int(self.offset.GetValue())
         width = int(self.width.GetValue())
         height = int(self.height.GetValue())
         channels = int(self.channels.GetValue())
 
-        print((path, offset, width, height, channels))
+        try:
+            with open(path, 'rb') as f:
+                data = f.read()
+
+            diff_size = offset + width * height * channels - len(data)
+            data = data[offset:] + b'\0' * diff_size
+
+            img = wx.Image(width, height, data)
+            self.bmp.SetBitmap(wx.Bitmap(img))
+            self.bmp.Show()
+            self.Layout()
+
+        except Exception:
+            self.bmp.Hide()
 
 
 class MyFrame(wx.Frame):
@@ -81,10 +100,10 @@ class MyFrame(wx.Frame):
         file_menu = wx.Menu()
 
         open_item = file_menu.Append(wx.ID_OPEN, '&Open\tCtrl-O', ' Open a file')
-        save_item = file_menu.Append(wx.ID_SAVE, '&Save As\tCtrl-S', ' Save file as')
+        save_item = file_menu.Append(wx.ID_SAVE, '&Save\tCtrl-S', ' Save file as')
         file_menu.AppendSeparator()
-        prev_item = file_menu.Append(-1, '&Prev Image\tPage Up', ' Show previous image')
-        next_item = file_menu.Append(-1, '&Next Image\tPage Down', ' Show next image')
+        prev_item = file_menu.Append(-1, '&Prev\tPgUp', ' Show previous image')
+        next_item = file_menu.Append(-1, '&Next\tPgDn', ' Show next image')
         file_menu.AppendSeparator()
         exit_item = file_menu.Append(wx.ID_EXIT, 'E&xit\tEsc', ' Exit')
 
