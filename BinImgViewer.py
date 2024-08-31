@@ -1,4 +1,5 @@
 import sys
+import itertools
 
 import wx
 
@@ -96,6 +97,9 @@ class MyPanel(wx.Panel):
 
             diff_size = offset + width * height * channels - len(data)
             data = data[offset:] + b'\0' * diff_size
+
+            if channels == 1:
+                data = bytes(itertools.chain.from_iterable(zip(data, data, data)))
 
             img = wx.Image(width, height, data)
             self.bmp.SetBitmap(wx.Bitmap(img))
