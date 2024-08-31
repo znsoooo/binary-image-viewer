@@ -1,4 +1,16 @@
+import sys
+
 import wx
+
+
+class MyFileDropTarget(wx.FileDropTarget):
+    def __init__(self, callback):
+        wx.FileDropTarget.__init__(self)
+        self.callback = callback
+
+    def OnDropFiles(self, x, y, filenames):
+        self.callback(filenames[0])
+        return False
 
 
 class MyPanel(wx.Panel):
@@ -94,6 +106,12 @@ class MyFrame(wx.Frame):
         self.CreateMenu()
         self.Center()
         self.Show()
+
+        dt = MyFileDropTarget(self.panel.path.SetValue)
+        self.SetDropTarget(dt)
+
+        if sys.argv[1:]:
+            self.panel.path.SetValue(sys.argv[1])
 
     def CreateMenu(self):
         menubar = wx.MenuBar()
