@@ -20,7 +20,7 @@ class MyPanel(wx.Panel):
         self.parent = parent
         self.bmp = wx.StaticBitmap(self)
 
-        self.path = wx.TextCtrl(self, size=(600, -1))
+        self.path     = wx.TextCtrl(self)
         self.offset   = wx.SpinCtrl(self, -1, '0', max=wx.INT32_MAX, size=(80, -1))
         self.width    = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
         self.height   = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
@@ -31,7 +31,7 @@ class MyPanel(wx.Panel):
         def AddLabel(sizer, label, border):
             sizer.Add(wx.StaticText(self, -1, label), 0, wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border)
 
-        box1 = wx.BoxSizer(wx.HORIZONTAL)
+        box1 = wx.BoxSizer()
         AddLabel(box1, 'Offset:', border)
         box1.Add(self.offset)
         AddLabel(box1, 'Width:', border)
@@ -41,10 +41,17 @@ class MyPanel(wx.Panel):
         AddLabel(box1, 'Channels:', border)
         box1.Add(self.channels)
 
+        box2 = wx.BoxSizer()
+        AddLabel(box2, 'Path:', border)
+        box2.Add(self.path, 1, wx.EXPAND)
+
+        box3 = wx.BoxSizer(wx.VERTICAL)
+        box3.Add(box1, 1, wx.ALL | wx.EXPAND, border)
+        box3.Add(box2, 1, wx.ALL | wx.EXPAND, border)
+
         box = wx.BoxSizer(wx.VERTICAL)
-        box.Add(self.bmp,  1, wx.ALL | wx.ALIGN_CENTER, border)
-        box.Add(box1,      0, wx.ALL | wx.ALIGN_CENTER, border)
-        box.Add(self.path, 0, wx.ALL | wx.ALIGN_CENTER, border)
+        box.Add(self.bmp, 1, wx.ALL | wx.ALIGN_CENTER, 0)
+        box.Add(box3,     0, wx.ALL | wx.ALIGN_CENTER, border)
 
         self.SetSizer(box)
 
