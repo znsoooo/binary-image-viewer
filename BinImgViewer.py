@@ -75,7 +75,7 @@ class MyPanel(wx.Panel):
 
     def OnOpen(self, evt):
         dlg = wx.FileDialog(
-                self, 'Open file', wildcard='Binary file (*.bin)|*.bin',
+                self, 'Open file', wildcard='Binary file (*.bin)|*.bin|All file (*.*)|*.*',
                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             self.path.SetValue(dlg.GetPath())
@@ -83,11 +83,11 @@ class MyPanel(wx.Panel):
 
     def OnSave(self, evt):
         dlg = wx.FileDialog(
-                self, 'Save file', wildcard='Binary file (*.bin)|*.bin',
+                self, 'Save file', wildcard='Binary file (*.bin)|*.bin|All file (*.*)|*.*',
                 style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            print(path)
+            wx.MessageBox('Unfilled.')
 
     def OnPathKeyDown(self, evt):
         code = evt.GetKeyCode()
