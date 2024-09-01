@@ -124,9 +124,15 @@ class MyPanel(wx.Panel):
             data = data + b'\0' * diff_size
 
         if channels == 1:
+            alpha = b'\xff' * len(data)
             data = bytes(itertools.chain.from_iterable(zip(data, data, data)))
+        elif channels == 3:
+            alpha = b'\xff' * (len(data) // 3)
+        else: # channels == 4:
+            alpha = bytes(c for i, c in enumerate(data) if i % 4 == 3)
+            data = bytes(c for i, c in enumerate(data) if i % 4 < 3)
 
-        img = wx.Image(width, height, data)
+        img = wx.Image(width, height, data, alpha)
         self.bmp.SetBitmap(wx.Bitmap(img))
         self.bmp.Show()
         self.Layout()
