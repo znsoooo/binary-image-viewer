@@ -1,9 +1,13 @@
 import os
 import sys
+import glob
 import math
 import itertools
 
 import wx
+
+osp = os.path
+
 
 __title__ = 'Binary Image Viewer'
 
@@ -66,6 +70,9 @@ class MyPanel(wx.Panel):
         self.height.Bind(wx.EVT_TEXT, self.ViewImage)
         self.channels.Bind(wx.EVT_TEXT, self.ViewImage)
 
+        self.path.Bind(wx.EVT_KEY_DOWN, self.OnPathKeyDown)
+        self.path.Bind(wx.EVT_MOUSEWHEEL, self.OnPathWheelDown)
+
     def OnOpen(self, evt):
         dlg = wx.FileDialog(
                 self, 'Open file', wildcard='Binary file (*.bin)|*.bin',
@@ -82,14 +89,33 @@ class MyPanel(wx.Panel):
             path = dlg.GetPath()
             print(path)
 
-    def OnPrev(self, evt):
-        print('Show prev image')
+    def OnPathKeyDown(self, evt):
+        code = evt.GetKeyCode()
+        if code == wx.WXK_DOWN:
+            self.ViewNext(1)
+        elif code == wx.WXK_UP:
+            self.ViewNext(-1)
+        else:
+            evt.Skip()
 
-    def OnNext(self, evt):
-        print('Show next image')
+    def OnPathWheelDown(self, evt):
+        if evt.GetWheelRotation() < 0:
+            self.ViewNext(1)
+        else:
+            self.ViewNext(-1)
+
+    def ViewNext(self, next):
+        path = osp.abspath(self.path.GetValue().strip('\'"'))
+        root = path if osp.isdir(path) else osp.dirname(path)
+        paths = glob.glob(osp.join(root, '*.bin'))
+        if paths:
+            idx = paths.index(path) if path in paths else 0
+            idx = (idx + next) % max(len(paths), 1)
+            self.path.SetValue(paths[idx])
+            self.path.SetInsertionPointEnd()
 
     def ViewImage(self, evt):
-        path = self.path.GetValue().strip('\'"')
+        path = osp.abspath(self.path.GetValue().strip('\'"'))
         width = int(self.width.GetValue())
         height = int(self.height.GetValue())
         channels = int(self.channels.GetValue())
@@ -136,7 +162,7 @@ class MyPanel(wx.Panel):
         self.bmp.SetBitmap(wx.Bitmap(img))
         self.bmp.Show()
         self.Layout()
-        self.parent.SetTitle(f'{os.path.basename(path)} - {__title__}')
+        self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
 
 
 class MyFrame(wx.Frame):
@@ -170,8 +196,8 @@ class MyFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.panel.OnOpen, open_item)
         self.Bind(wx.EVT_MENU, self.panel.OnSave, save_item)
-        self.Bind(wx.EVT_MENU, self.panel.OnPrev, prev_item)
-        self.Bind(wx.EVT_MENU, self.panel.OnNext, next_item)
+        self.Bind(wx.EVT_MENU, lambda e: self.panel.ViewNext(-1), prev_item)
+        self.Bind(wx.EVT_MENU, lambda e: self.panel.ViewNext( 1), next_item)
         self.Bind(wx.EVT_MENU, self.OnClose, exit_item)
 
     def OnClose(self, evt):
