@@ -27,11 +27,12 @@ class MyPanel(wx.Panel):
 
         self.last_path = None
         self.last_data = None
+        self.last_channels = 3
 
         self.path     = wx.TextCtrl(self)
         self.width    = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
         self.height   = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
-        self.channels = wx.SpinCtrl(self, -1, '3', min=1, max=4, size=(80, -1))
+        self.channels = wx.SpinCtrl(self, -1, str(self.last_channels), min=1, max=4, size=(80, -1))
 
         border = 4
 
@@ -92,6 +93,11 @@ class MyPanel(wx.Panel):
         width = int(self.width.GetValue())
         height = int(self.height.GetValue())
         channels = int(self.channels.GetValue())
+
+        if channels == 2:
+            channels = 1 if self.last_channels > 2 else 3
+            self.channels.SetValue(str(channels))
+            self.last_channels = channels
 
         if path == self.last_path:
             data = self.last_data
