@@ -134,7 +134,7 @@ class MyPanel(wx.Panel):
                 self.last_data = data
                 self.last_path = path
             except Exception:
-                self.bmp.Hide()
+                self.bmp.SetBitmap(wx.Bitmap())
                 self.parent.SetTitle(__title__)
                 return
 
@@ -158,9 +158,13 @@ class MyPanel(wx.Panel):
             alpha = bytes(c for i, c in enumerate(data) if i % 4 == 3)
             data = bytes(c for i, c in enumerate(data) if i % 4 < 3)
 
-        img = wx.Image(width, height, data, alpha)
-        self.bmp.SetBitmap(wx.Bitmap(img))
-        self.bmp.Show()
+        if max(width, height) > 10000:
+            # Too large image size make program crash
+            self.bmp.SetBitmap(wx.Bitmap())
+        else:
+            img = wx.Image(width, height, data, alpha)
+            self.bmp.SetBitmap(wx.Bitmap(img))
+
         self.Layout()
         self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
 
