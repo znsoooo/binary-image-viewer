@@ -149,21 +149,17 @@ class MyPanel(wx.Panel):
             diff_size = width * height * channels - data_size
             data = data + b'\0' * diff_size
 
-        if channels == 1:
-            alpha = b'\xff' * len(data)
-            data = bytes(itertools.chain.from_iterable(zip(data, data, data)))
-        elif channels == 3:
-            alpha = b'\xff' * (len(data) // 3)
-        else: # channels == 4:
-            alpha = bytes(c for i, c in enumerate(data) if i % 4 == 3)
-            data = bytes(c for i, c in enumerate(data) if i % 4 < 3)
-
+        bmp = wx.Bitmap()
         if max(width, height) > 10000:
-            # Too large image size make program crash
-            self.bmp.SetBitmap(wx.Bitmap())
-        else:
-            img = wx.Image(width, height, data, alpha)
-            self.bmp.SetBitmap(wx.Bitmap(img))
+            pass  # Too large image size make program crash
+        elif channels == 1:
+            data = bytes(itertools.chain.from_iterable(zip(data, data, data)))
+            bmp = bmp.FromBuffer(width, height, data)
+        elif channels == 3:
+            bmp = bmp.FromBuffer(width, height, data)
+        else: # channels == 4:
+            bmp = bmp.FromBufferRGBA(width, height, data)
+        self.bmp.SetBitmap(bmp)
 
         self.Layout()
         self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
