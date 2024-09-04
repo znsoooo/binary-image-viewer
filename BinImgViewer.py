@@ -116,6 +116,22 @@ class MyPanel(wx.Panel):
 
     def ViewImage(self, evt):
         path = osp.abspath(self.path.GetValue().strip('\'"'))
+        if not os.path.isfile(path):
+            self.bmp.SetBitmap(wx.Bitmap())
+            self.parent.SetTitle(__title__)
+        else:
+            if not self.ViewNormalImage(path):
+                self.ViewBinImage(path)
+            self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
+        self.Layout()
+
+    def ViewNormalImage(self, path):
+        with wx.LogNull():
+            bmp = wx.Bitmap(path)
+            self.bmp.SetBitmap(bmp)
+            return bool(bmp)
+
+    def ViewBinImage(self, path):
         width = int(self.width.GetValue())
         height = int(self.height.GetValue())
         channels = int(self.channels.GetValue())
@@ -128,15 +144,10 @@ class MyPanel(wx.Panel):
         if path == self.last_path:
             data = self.last_data
         else:
-            try:
-                with open(path, 'rb') as f:
-                    data = f.read()
-                self.last_data = data
-                self.last_path = path
-            except Exception:
-                self.bmp.SetBitmap(wx.Bitmap())
-                self.parent.SetTitle(__title__)
-                return
+            with open(path, 'rb') as f:
+                data = f.read()
+            self.last_data = data
+            self.last_path = path
 
         data_size = len(data)
         if data_size != width * height * channels:
@@ -160,9 +171,6 @@ class MyPanel(wx.Panel):
         else: # channels == 4:
             bmp = bmp.FromBufferRGBA(width, height, data)
         self.bmp.SetBitmap(bmp)
-
-        self.Layout()
-        self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
 
 
 class MyFrame(wx.Frame):
