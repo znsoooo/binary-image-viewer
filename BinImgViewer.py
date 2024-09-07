@@ -3,6 +3,7 @@ import re
 import sys
 import math
 import itertools
+import traceback
 
 import wx
 
@@ -10,6 +11,17 @@ osp = os.path
 
 
 __title__ = 'Binary Image Viewer'
+
+
+def protect(fn):
+    def wrapper(*v, **kv):
+        try:
+            return fn(*v, **kv)
+        except Exception:
+            traceback.print_exc()
+            msg = traceback.format_exc(-1)
+            wx.MessageBox(msg)
+    return wrapper
 
 
 def ChainBytes(iter):
@@ -116,6 +128,7 @@ class MyPanel(wx.Panel):
         else:
             self.ViewNext(-1)
 
+    @protect
     def SaveImage(self, path):
         img = self.bmp.GetBitmap().ConvertToImage()
         if re.search(r'\.png$', path, re.I):
@@ -131,6 +144,7 @@ class MyPanel(wx.Panel):
             with open(path, 'wb') as f:
                 f.write(data)
 
+    @protect
     def ViewNext(self, next):
         path = self.GetPath()
         root = path if osp.isdir(path) else osp.dirname(path)
@@ -141,6 +155,7 @@ class MyPanel(wx.Panel):
             self.path.SetValue(paths[idx])
             self.path.SetInsertionPointEnd()
 
+    @protect
     def ViewImage(self, evt):
         path = self.GetPath()
         width = int(self.width.GetValue())
@@ -161,6 +176,7 @@ class MyPanel(wx.Panel):
             self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
         self.Layout()
 
+    @protect
     def ViewNormalImage(self, path, channels):
         with wx.LogNull():
             img = wx.Image(path)
@@ -176,6 +192,7 @@ class MyPanel(wx.Panel):
             self.bmp.SetBitmap(img.ConvertToBitmap())
             return True
 
+    @protect
     def ViewBinImage(self, path, width, height, channels):
         if path == self.last_path:
             data = self.last_data
