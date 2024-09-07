@@ -1,6 +1,6 @@
 import os
+import re
 import sys
-import glob
 import math
 import itertools
 
@@ -73,21 +73,29 @@ class MyPanel(wx.Panel):
         self.path.Bind(wx.EVT_KEY_DOWN, self.OnPathKeyDown)
         self.path.Bind(wx.EVT_MOUSEWHEEL, self.OnPathWheelDown)
 
+    def GetPath(self):
+        return osp.abspath(self.path.GetValue().strip('\'"'))
+
     def OnOpen(self, evt):
-        dlg = wx.FileDialog(
-                self, 'Open file', wildcard='Binary file (*.bin)|*.bin|All file (*.*)|*.*',
-                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        dlg = wx.FileDialog(self, 'Open file',
+            wildcard='Image file|*.bin;*.png;*.jpg;*.jpeg;*.bmp;*.gif|All file|*.*',
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             self.path.SetValue(dlg.GetPath())
             self.ViewImage(None)
 
     def OnSave(self, evt):
-        dlg = wx.FileDialog(
-                self, 'Save file', wildcard='Binary file (*.bin)|*.bin|All file (*.*)|*.*',
-                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        if not self.bmp.GetBitmap():
+            return
+        path = self.GetPath()
+        dlg = wx.FileDialog(self, 'Save file',
+            defaultDir=osp.dirname(path),
+            defaultFile=osp.splitext(osp.basename(path))[0],
+            wildcard='Binary file|*.bin|Image file|*.png',
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            wx.MessageBox('Unfilled.')
+            self.SaveImage(path)
 
     def OnPathKeyDown(self, evt):
         code = evt.GetKeyCode()
@@ -104,18 +112,27 @@ class MyPanel(wx.Panel):
         else:
             self.ViewNext(-1)
 
+    def SaveImage(self, path):
+        bmp = self.bmp.GetBitmap()
+        if re.search(r'\.png$', path, re.I):
+            bmp.SaveFile(path, wx.BITMAP_TYPE_PNG)
+        else:
+            data = bmp.ConvertToImage().GetData()
+            with open(path, 'wb') as f:
+                f.write(data)
+
     def ViewNext(self, next):
-        path = osp.abspath(self.path.GetValue().strip('\'"'))
+        path = self.GetPath()
         root = path if osp.isdir(path) else osp.dirname(path)
-        paths = glob.glob(osp.join(root, '*.bin'))
-        if paths:
+        paths = [osp.join(root, name) for name in os.listdir(root) if re.search(r'\.(bin|png|jpe?g|bmp|gif)$', name, re.I)]
+        if len(paths) > 1:
             idx = paths.index(path) if path in paths else 0
             idx = (idx + next) % max(len(paths), 1)
             self.path.SetValue(paths[idx])
             self.path.SetInsertionPointEnd()
 
     def ViewImage(self, evt):
-        path = osp.abspath(self.path.GetValue().strip('\'"'))
+        path = self.GetPath()
         if not os.path.isfile(path):
             self.bmp.SetBitmap(wx.Bitmap())
             self.parent.SetTitle(__title__)
