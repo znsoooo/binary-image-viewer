@@ -133,22 +133,6 @@ class MyPanel(wx.Panel):
 
     def ViewImage(self, evt):
         path = self.GetPath()
-        if not os.path.isfile(path):
-            self.bmp.SetBitmap(wx.Bitmap())
-            self.parent.SetTitle(__title__)
-        else:
-            if not self.ViewNormalImage(path):
-                self.ViewBinImage(path)
-            self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
-        self.Layout()
-
-    def ViewNormalImage(self, path):
-        with wx.LogNull():
-            bmp = wx.Bitmap(path)
-            self.bmp.SetBitmap(bmp)
-            return bool(bmp)
-
-    def ViewBinImage(self, path):
         width = int(self.width.GetValue())
         height = int(self.height.GetValue())
         channels = int(self.channels.GetValue())
@@ -158,6 +142,31 @@ class MyPanel(wx.Panel):
             self.channels.SetValue(str(channels))
             self.last_channels = channels
 
+        if not os.path.isfile(path):
+            self.bmp.SetBitmap(wx.Bitmap())
+            self.parent.SetTitle(__title__)
+        else:
+            if not self.ViewNormalImage(path, channels):
+                self.ViewBinImage(path, width, height, channels)
+            self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
+        self.Layout()
+
+    def ViewNormalImage(self, path, channels):
+        with wx.LogNull():
+            img = wx.Image(path)
+            if not img:
+                return False
+            if channels == 1:
+                img = img.ConvertToGreyscale()
+            if channels in [1, 3]:
+                img0 = wx.Image(img.GetSize())
+                img0.SetRGB(wx.Rect(img.GetSize()), 255, 255, 255)
+                img0.Paste(img, 0, 0, wx.IMAGE_ALPHA_BLEND_COMPOSE)
+                img = img0
+            self.bmp.SetBitmap(img.ConvertToBitmap())
+            return True
+
+    def ViewBinImage(self, path, width, height, channels):
         if path == self.last_path:
             data = self.last_data
         else:
