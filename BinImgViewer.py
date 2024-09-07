@@ -12,6 +12,10 @@ osp = os.path
 __title__ = 'Binary Image Viewer'
 
 
+def ChainBytes(iter):
+    return bytes(itertools.chain.from_iterable(iter))
+
+
 class MyFileDropTarget(wx.FileDropTarget):
     def __init__(self, callback):
         wx.FileDropTarget.__init__(self)
@@ -113,11 +117,17 @@ class MyPanel(wx.Panel):
             self.ViewNext(-1)
 
     def SaveImage(self, path):
-        bmp = self.bmp.GetBitmap()
+        img = self.bmp.GetBitmap().ConvertToImage()
         if re.search(r'\.png$', path, re.I):
-            bmp.SaveFile(path, wx.BITMAP_TYPE_PNG)
+            img.SaveFile(path, wx.BITMAP_TYPE_PNG)
         else:
-            data = bmp.ConvertToImage().GetData()
+            channels = int(self.channels.GetValue())
+            data = img.GetData()
+            if channels == 1:
+                data = bytes(data[i] for i in range(0, len(data), 3))
+            elif channels == 4:
+                alpha = img.GetAlphaBuffer() or b'\xff' * (len(data) // 3)
+                data = ChainBytes([*data[3*i:3*i+3], alpha[i]] for i in range(len(alpha)))
             with open(path, 'wb') as f:
                 f.write(data)
 
@@ -190,7 +200,7 @@ class MyPanel(wx.Panel):
         if max(width, height) > 10000:
             pass  # Too large image size make program crash
         elif channels == 1:
-            data = bytes(itertools.chain.from_iterable(zip(data, data, data)))
+            data = ChainBytes(zip(data, data, data))
             bmp = bmp.FromBuffer(width, height, data)
         elif channels == 3:
             bmp = bmp.FromBuffer(width, height, data)
