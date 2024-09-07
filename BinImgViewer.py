@@ -47,6 +47,7 @@ class MyPanel(wx.Panel):
 
         self.last_path = None
         self.last_data = None
+        self.last_img  = None
         self.last_channels = 3
 
         self.path     = wx.TextCtrl(self)
@@ -174,33 +175,35 @@ class MyPanel(wx.Panel):
             if not self.ViewNormalImage(path, channels):
                 self.ViewBinImage(path, width, height, channels)
             self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
+        self.last_path = path
         self.Layout()
 
     @protect
     def ViewNormalImage(self, path, channels):
         with wx.LogNull():
-            img = wx.Image(path)
+            if path != self.last_path:
+                self.last_img = wx.Image(path)
+            img = self.last_img
             if not img:
                 return False
-            if channels == 1:
-                img = img.ConvertToGreyscale()
-            if channels in [1, 3]:
-                img0 = wx.Image(img.GetSize())
-                img0.SetRGB(wx.Rect(img.GetSize()), 255, 255, 255)
-                img0.Paste(img, 0, 0, wx.IMAGE_ALPHA_BLEND_COMPOSE)
-                img = img0
-            self.bmp.SetBitmap(img.ConvertToBitmap())
-            return True
+
+        if channels == 1:
+            img = img.ConvertToGreyscale()
+        if channels in [1, 3]:
+            img0 = wx.Image(img.GetSize())
+            img0.SetRGB(wx.Rect(img.GetSize()), 255, 255, 255)
+            img0.Paste(img, 0, 0, wx.IMAGE_ALPHA_BLEND_COMPOSE)
+            img = img0
+
+        self.bmp.SetBitmap(img.ConvertToBitmap())
+        return True
 
     @protect
     def ViewBinImage(self, path, width, height, channels):
-        if path == self.last_path:
-            data = self.last_data
-        else:
+        if path != self.last_path:
             with open(path, 'rb') as f:
-                data = f.read()
-            self.last_data = data
-            self.last_path = path
+                self.last_data = f.read()
+        data = self.last_data
 
         data_size = len(data)
         if data_size != width * height * channels:
