@@ -194,6 +194,8 @@ class MyPanel(wx.Panel):
             img0.SetRGB(wx.Rect(img.GetSize()), 255, 255, 255)
             img0.Paste(img, 0, 0, wx.IMAGE_ALPHA_BLEND_COMPOSE)
             img = img0
+        self.width.SetValue(img.GetWidth())
+        self.height.SetValue(img.GetHeight())
 
         self.bmp.SetBitmap(img.ConvertToBitmap())
         return True
