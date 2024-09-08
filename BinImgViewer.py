@@ -150,9 +150,10 @@ class MyPanel(wx.Panel):
         path = self.GetPath()
         root = path if osp.isdir(path) else osp.dirname(path)
         paths = [osp.join(root, name) for name in os.listdir(root) if re.search(r'\.(bin|png|jpe?g|bmp|gif)$', name, re.I)]
+        paths = sorted(paths if path in paths else paths + [path])
         if len(paths) > 1:
-            idx = paths.index(path) if path in paths else 0
-            idx = (idx + next) % max(len(paths), 1)
+            idx = paths.index(path)
+            idx = (idx + next) % len(paths)
             self.path.SetValue(paths[idx])
             self.path.SetInsertionPointEnd()
 
