@@ -61,12 +61,12 @@ class MyPanel(wx.Panel):
         self.last_path = None
         self.last_data = None
         self.last_img  = None
-        self.last_channels = 3
+        self.last_channels = None
 
         self.path     = wx.TextCtrl(self)
-        self.width    = MySpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
-        self.height   = MySpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
-        self.channels = MySpinCtrl(self, -1, str(self.last_channels), min=1, max=4, size=(80, -1))
+        self.width    = MySpinCtrl(self, -1, min=1, max=wx.INT32_MAX, size=(80, -1))
+        self.height   = MySpinCtrl(self, -1, min=1, max=wx.INT32_MAX, size=(80, -1))
+        self.channels = MySpinCtrl(self, -1, min=1, max=4, size=(80, -1))
 
         border = 4
 
@@ -181,6 +181,8 @@ class MyPanel(wx.Panel):
         channels = self.channels.GetValue()
 
         if channels == 2:
+            if self.last_channels is None:
+                self.last_channels = channels
             channels = 1 if self.last_channels > 2 else 3
             self.channels.SetValue(channels)
             self.last_channels = channels
@@ -251,7 +253,10 @@ class MyPanel(wx.Panel):
 class MyFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, 'Binary Image Viewer', size=(800, 600))
+
+        self.history = osp.splitext(sys.argv[0])[0] + '.cfg'
         self.panel = MyPanel(self)
+
         self.CreateMenu()
         self.Center()
         self.Show()
@@ -259,8 +264,7 @@ class MyFrame(wx.Frame):
         dt = MyFileDropTarget(self.panel.SetPath)
         self.SetDropTarget(dt)
 
-        if sys.argv[1:]:
-            self.panel.SetPath(sys.argv[1])
+        wx.CallAfter(self.OnOpen)
 
     def CreateMenu(self):
         menubar = wx.MenuBar()
@@ -281,10 +285,35 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panel.OnSave, save_item)
         self.Bind(wx.EVT_MENU, lambda e: self.panel.ViewNext(-1), prev_item)
         self.Bind(wx.EVT_MENU, lambda e: self.panel.ViewNext( 1), next_item)
-        self.Bind(wx.EVT_MENU, self.OnClose, exit_item)
+        self.Bind(wx.EVT_MENU, lambda e: self.Close(), exit_item)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+
+    def OnOpen(self):
+        path, width, height, channels = '', 256, 256, 3  # Set default
+        if osp.isfile(self.history):
+            try:
+                with open(self.history) as f:
+                    path, width, height, channels = f.read().split('\n')[:4]
+            except Exception:
+                traceback.print_exc()
+        if sys.argv[1:]:
+            path = sys.argv[1]
+        self.panel.width.SetValue(width)
+        self.panel.height.SetValue(height)
+        self.panel.channels.SetValue(channels)
+        self.panel.SetPath(path)
 
     def OnClose(self, evt):
-        self.Close()
+        try:
+            path = self.panel.GetPath()
+            width = self.panel.width.GetTextValue()
+            height = self.panel.height.GetTextValue()
+            channels = self.panel.channels.GetTextValue()
+            with open(self.history, 'w') as f:
+                f.write('\n'.join([path, width, height, channels]))
+        except Exception:
+            traceback.print_exc()
+        evt.Skip()
 
 
 if __name__ == '__main__':
