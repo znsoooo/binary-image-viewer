@@ -38,6 +38,19 @@ class MyFileDropTarget(wx.FileDropTarget):
         return False
 
 
+class MySpinCtrl(wx.SpinCtrl):
+    def __init__(self, *args, **kw):
+        wx.SpinCtrl.__init__(self, *args, **kw)
+        self.Bind(wx.EVT_SPINCTRL, lambda e: self.SetInsertionPointEnd())
+
+    def SetInsertionPointEnd(self):
+        self.SetSelection(-2, -1)
+
+    def SetValue(self, value):
+        super().SetValue(value)
+        self.SetInsertionPointEnd()
+
+
 class MyPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -51,9 +64,9 @@ class MyPanel(wx.Panel):
         self.last_channels = 3
 
         self.path     = wx.TextCtrl(self)
-        self.width    = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
-        self.height   = wx.SpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
-        self.channels = wx.SpinCtrl(self, -1, str(self.last_channels), min=1, max=4, size=(80, -1))
+        self.width    = MySpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
+        self.height   = MySpinCtrl(self, -1, '256', min=1, max=wx.INT32_MAX, size=(80, -1))
+        self.channels = MySpinCtrl(self, -1, str(self.last_channels), min=1, max=4, size=(80, -1))
 
         border = 4
 
@@ -98,7 +111,7 @@ class MyPanel(wx.Panel):
             wildcard='Image file|*.bin;*.png;*.jpg;*.jpeg;*.bmp;*.gif|All file|*.*',
             style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
-            self.path.SetValue(dlg.GetPath())
+            self.SetPath(dlg.GetPath())
             self.ViewImage(None)
 
     def OnSave(self, evt):
@@ -129,13 +142,17 @@ class MyPanel(wx.Panel):
         else:
             self.ViewNext(-1)
 
+    def SetPath(self, path):
+        self.path.SetValue(path)
+        self.path.SetInsertionPointEnd()
+
     @protect
     def SaveImage(self, path):
         img = self.bmp.GetBitmap().ConvertToImage()
         if re.search(r'\.png$', path, re.I):
             img.SaveFile(path, wx.BITMAP_TYPE_PNG)
         else:
-            channels = int(self.channels.GetValue())
+            channels = self.channels.GetValue()
             data = img.GetData()
             if channels == 1:
                 data = bytes(data[i] for i in range(0, len(data), 3))
@@ -154,19 +171,18 @@ class MyPanel(wx.Panel):
         if len(paths) > 1:
             idx = paths.index(path)
             idx = (idx + next) % len(paths)
-            self.path.SetValue(paths[idx])
-            self.path.SetInsertionPointEnd()
+            self.SetPath(paths[idx])
 
     @protect
     def ViewImage(self, evt):
         path = self.GetPath()
-        width = int(self.width.GetValue())
-        height = int(self.height.GetValue())
-        channels = int(self.channels.GetValue())
+        width = self.width.GetValue()
+        height = self.height.GetValue()
+        channels = self.channels.GetValue()
 
         if channels == 2:
             channels = 1 if self.last_channels > 2 else 3
-            self.channels.SetValue(str(channels))
+            self.channels.SetValue(channels)
             self.last_channels = channels
 
         if not os.path.isfile(path):
@@ -240,11 +256,11 @@ class MyFrame(wx.Frame):
         self.Center()
         self.Show()
 
-        dt = MyFileDropTarget(self.panel.path.SetValue)
+        dt = MyFileDropTarget(self.panel.SetPath)
         self.SetDropTarget(dt)
 
         if sys.argv[1:]:
-            self.panel.path.SetValue(sys.argv[1])
+            self.panel.SetPath(sys.argv[1])
 
     def CreateMenu(self):
         menubar = wx.MenuBar()
