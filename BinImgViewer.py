@@ -108,7 +108,7 @@ class MyPanel(wx.Panel):
 
     def OnOpen(self, evt):
         dlg = wx.FileDialog(self, 'Open file',
-            wildcard='Image file|*.bin;*.png;*.jpg;*.jpeg;*.bmp;*.gif|All file|*.*',
+            wildcard='Binary file|*.binp;*.bin|Image file|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All file|*.*',
             style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             self.SetPath(dlg.GetPath())
@@ -121,7 +121,7 @@ class MyPanel(wx.Panel):
         dlg = wx.FileDialog(self, 'Save file',
             defaultDir=osp.dirname(path),
             defaultFile=osp.splitext(osp.basename(path))[0],
-            wildcard='Binary file|*.bin|Image file|*.png',
+            wildcard='Binary file|*.binp;*.bin|Image file|*.png|All file|*.*',
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -166,7 +166,7 @@ class MyPanel(wx.Panel):
     def ViewNext(self, next):
         path = self.GetPath()
         root = path if osp.isdir(path) else osp.dirname(path)
-        paths = [osp.join(root, name) for name in os.listdir(root) if re.search(r'\.(bin|png|jpe?g|bmp|gif)$', name, re.I)]
+        paths = [osp.join(root, name) for name in os.listdir(root) if re.search(r'\.(binp?|png|jpe?g|bmp|gif)$', name, re.I)]
         paths = sorted(paths if path in paths else paths + [path])
         if len(paths) > 1:
             idx = paths.index(path)
