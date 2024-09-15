@@ -38,6 +38,27 @@ class MyFileDropTarget(wx.FileDropTarget):
         return False
 
 
+class BitmapWindow(wx.ScrolledWindow):
+    def __init__(self, parent):
+        wx.ScrolledWindow.__init__(self, parent, style=wx.BORDER_SUNKEN)
+
+        self.SetScrollRate(20, 20)
+        self.bmp = wx.StaticBitmap(self)
+
+        box = wx.BoxSizer()
+        box.Add(self.bmp, 1, wx.ALL | wx.EXPAND)
+        self.SetSizer(box)
+
+        self.bmp.Bind(wx.EVT_LEFT_UP, lambda e: self.bmp.SetFocus())
+
+    def GetBitmap(self):
+        return self.bmp.GetBitmap()
+
+    def SetBitmap(self, bmp):
+        self.bmp.SetBitmap(bmp)
+        self.SetVirtualSize(self.bmp.GetSize())
+
+
 class MySpinCtrl(wx.SpinCtrl):
     def __init__(self, *args, **kw):
         wx.SpinCtrl.__init__(self, *args, **kw)
@@ -56,7 +77,7 @@ class MyPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         self.parent = parent
-        self.bmp = wx.StaticBitmap(self)
+        self.bmp = BitmapWindow(self)
 
         self.last_path = None
         self.last_data = None
@@ -90,7 +111,7 @@ class MyPanel(wx.Panel):
         box3.Add(box2, 1, wx.ALL | wx.EXPAND, border)
 
         box = wx.BoxSizer(wx.VERTICAL)
-        box.Add(self.bmp, 1, wx.ALL | wx.ALIGN_CENTER, 0)
+        box.Add(self.bmp, 1, wx.ALL | wx.EXPAND, 0)
         box.Add(box3,     0, wx.ALL | wx.ALIGN_CENTER, border)
 
         self.SetSizer(box)
