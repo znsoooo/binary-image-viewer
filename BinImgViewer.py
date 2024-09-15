@@ -192,7 +192,7 @@ class MyPanel(wx.Panel):
             self.parent.SetTitle(__title__)
         else:
             if not self.ViewNormalImage(path, channels):
-                self.ViewBinImage(path, width, height, channels)
+                self.ViewBinaryImage(path, width, height, channels)
             self.parent.SetTitle(f'{osp.basename(path)} - {__title__}')
         self.last_path = path
         self.Layout()
@@ -220,7 +220,7 @@ class MyPanel(wx.Panel):
         return True
 
     @protect
-    def ViewBinImage(self, path, width, height, channels):
+    def ViewBinaryImage(self, path, width, height, channels):
         if path != self.last_path:
             with open(path, 'rb') as f:
                 self.last_data = f.read()
