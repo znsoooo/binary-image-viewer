@@ -1,3 +1,28 @@
+"""
+Binary Image Viewer
+===================
+
+Binary Image Viewer is a desktop application built with wxPython, designed to view and convert binary image files. The binary image files format arranged in a row-major order, supporting 1-channel (gray), 3-channel (RGB), and 4-channel (RGBA) images.
+It also supports reading other formats of image files, provide channels conversion and file saving.
+
+Settings
+--------
+- Width: Set the width of the binary image.
+- Height: Set the height of the binary image.
+- Channels: Set the number of channels (1 for GRAY, 3 for RGB, and 4 for RGBA).
+- Path: Set the file path to open a binary or a normal image file.
+
+License
+-------
+- Author: Shixian Li
+- QQ: 11313213
+- Email: lsx7@sina.com
+- GitHub: https://github.com/znsoooo/binary-image-viewer
+- License: MIT License. Copyright (c) 2024 Shixian Li (znsoooo). All Rights Reserved.
+
+"""
+
+
 import os
 import re
 import sys
