@@ -24,18 +24,22 @@ License
 
 
 import os
+import os.path as osp
 import re
 import sys
 import math
 import itertools
 import traceback
+import webbrowser
 
 import wx
 
-osp = os.path
+import donate
 
 
+__version__ = '1.0.0'
 __title__ = 'Binary Image Viewer'
+__homepage__ = 'https://github.com/znsoooo/binary-image-viewer'
 
 
 def protect(fn):
@@ -51,6 +55,16 @@ def protect(fn):
 
 def ChainBytes(iter):
     return bytes(itertools.chain.from_iterable(iter))
+
+
+def Help():
+    dlg = wx.TextEntryDialog(None, 'Help', f'Help on {__title__} {__version__}', __doc__.lstrip(), style=wx.TE_MULTILINE | wx.OK)
+    font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+    dlg.GetChildren()[1].SetFont(font)
+    dlg.SetSize((750, 560))
+    dlg.Center()
+    dlg.ShowModal()
+    dlg.Destroy()
 
 
 class MyFileDropTarget(wx.FileDropTarget):
@@ -313,25 +327,38 @@ class MyFrame(wx.Frame):
         wx.CallAfter(self.OnOpen)
 
     def CreateMenu(self):
-        menubar = wx.MenuBar()
         file_menu = wx.Menu()
 
-        open_item = file_menu.Append(wx.ID_OPEN, '&Open\tCtrl-O', ' Open a file')
-        save_item = file_menu.Append(wx.ID_SAVE, '&Save\tCtrl-S', ' Save file as')
+        file_menu.Append(101, '&Open\tCtrl-O')
+        file_menu.Append(102, '&Save\tCtrl-S')
         file_menu.AppendSeparator()
-        prev_item = file_menu.Append(-1, '&Prev\tPgUp', ' Show previous image')
-        next_item = file_menu.Append(-1, '&Next\tPgDn', ' Show next image')
+        file_menu.Append(103, '&Prev\tPgUp')
+        file_menu.Append(104, '&Next\tPgDn')
         file_menu.AppendSeparator()
-        exit_item = file_menu.Append(wx.ID_EXIT, 'E&xit\tEsc', ' Exit')
+        file_menu.Append(105, 'E&xit\tEsc')
 
+        help_menu = wx.Menu()
+        help_menu.Append(201, '&Help\tF1')
+        help_menu.AppendSeparator()
+        help_menu.Append(202, '&Donate\tF2')
+        help_menu.AppendSeparator()
+        help_menu.Append(203, '&About\tF3')
+
+        menubar = wx.MenuBar()
         menubar.Append(file_menu, '&File')
+        menubar.Append(help_menu, '&Help')
         self.SetMenuBar(menubar)
 
-        self.Bind(wx.EVT_MENU, self.panel.OnOpen, open_item)
-        self.Bind(wx.EVT_MENU, self.panel.OnSave, save_item)
-        self.Bind(wx.EVT_MENU, lambda e: self.panel.ViewNext(-1), prev_item)
-        self.Bind(wx.EVT_MENU, lambda e: self.panel.ViewNext( 1), next_item)
-        self.Bind(wx.EVT_MENU, lambda e: self.Close(), exit_item)
+        self.Bind(wx.EVT_MENU, self.panel.OnOpen, id=101)
+        self.Bind(wx.EVT_MENU, self.panel.OnSave, id=102)
+        self.Bind(wx.EVT_MENU, lambda e: self.panel.ViewNext(-1), id=103)
+        self.Bind(wx.EVT_MENU, lambda e: self.panel.ViewNext( 1), id=104)
+        self.Bind(wx.EVT_MENU, lambda e: self.Close(), id=105)
+
+        self.Bind(wx.EVT_MENU, lambda e: Help(), id=201)
+        self.Bind(wx.EVT_MENU, lambda e: donate.DonateDialog(), id=202)
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(__homepage__), id=203)
+
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def OnOpen(self):
