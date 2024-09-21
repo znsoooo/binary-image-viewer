@@ -317,6 +317,9 @@ class MyFrame(wx.Frame):
         self.history = osp.splitext(sys.argv[0])[0] + '.cfg'
         self.panel = MyPanel(self)
 
+        icon = wx.IconBundle(__file__ + '/../icon.ico')
+        self.SetIcons(icon)
+
         self.CreateMenu()
         self.Center()
         self.Show()
