@@ -2,3 +2,8 @@
 *.spec
 build
 dist
+
+*.bin
+*.binp
+*.cfg
+*.log
