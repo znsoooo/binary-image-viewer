@@ -26,6 +26,7 @@ License
 import os
 import os.path as osp
 import re
+import csv
 import sys
 import math
 import itertools
@@ -165,6 +166,19 @@ class MyPanel(wx.Panel):
 
     def GetPath(self):
         return osp.abspath(self.path.GetValue().strip('\'"'))
+
+    def GetInfo(self):
+        path = self.GetPath()
+        width = self.width.GetValue()
+        height = self.height.GetValue()
+        channels = self.channels.GetValue()
+        return path, width, height, channels
+
+    def SetInfo(self, path, width, height, channels):
+        self.width.SetValue(width)
+        self.height.SetValue(height)
+        self.channels.SetValue(channels)
+        self.SetPath(path)
 
     def OnOpen(self, evt):
         dlg = wx.FileDialog(self, 'Open file',
@@ -314,7 +328,7 @@ class MyFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, 'Binary Image Viewer', size=(800, 600))
 
-        self.history = osp.splitext(sys.argv[0])[0] + '.cfg'
+        self.history = osp.splitext(sys.argv[0])[0] + '.log'
         self.panel = MyPanel(self)
 
         icon = wx.IconBundle(__file__ + '/../icon.ico')
@@ -322,12 +336,11 @@ class MyFrame(wx.Frame):
 
         self.CreateMenu()
         self.Center()
+        self.OnOpen()
         self.Show()
 
         dt = MyFileDropTarget(self.panel.SetPath)
         self.SetDropTarget(dt)
-
-        wx.CallAfter(self.OnOpen)
 
     def CreateMenu(self):
         file_menu = wx.Menu()
@@ -368,25 +381,22 @@ class MyFrame(wx.Frame):
         path, width, height, channels = '', 256, 256, 3  # Set default
         if osp.isfile(self.history):
             try:
-                with open(self.history) as f:
-                    path, width, height, channels = f.read().split('\n')[:4]
+                with open(self.history, encoding='u8') as f:
+                    xywh, (path,), (width, height, channels) = csv.reader(f)
+                self.SetSize(*map(int, xywh))
             except Exception:
                 traceback.print_exc()
         if sys.argv[1:]:
             path = sys.argv[1]
-        self.panel.width.SetValue(width)
-        self.panel.height.SetValue(height)
-        self.panel.channels.SetValue(channels)
-        self.panel.SetPath(path)
+        self.panel.SetInfo(path, width, height, channels)
 
     def OnClose(self, evt):
+        xywh = tuple(self.GetPosition()) + tuple(self.GetSize())
+        path, *whc = self.panel.GetInfo()
         try:
-            path = self.panel.GetPath()
-            width = self.panel.width.GetTextValue()
-            height = self.panel.height.GetTextValue()
-            channels = self.panel.channels.GetTextValue()
-            with open(self.history, 'w') as f:
-                f.write('\n'.join([path, width, height, channels]))
+            with open(self.history, 'w', newline='', encoding='u8') as f:
+                writer = csv.writer(f)
+                writer.writerows([xywh, [path], whc])
         except Exception:
             traceback.print_exc()
         evt.Skip()
