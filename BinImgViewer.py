@@ -59,7 +59,7 @@ def ChainBytes(iter):
 
 
 def Help():
-    dlg = wx.TextEntryDialog(None, 'Help', f'Help on {__title__} {__version__}', __doc__.lstrip(), style=wx.TE_MULTILINE | wx.OK)
+    dlg = wx.TextEntryDialog(None, 'Help', f'Help on {__title__} {__version__}', __doc__.strip() + '\n', style=wx.TE_MULTILINE | wx.OK)
     font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
     dlg.GetChildren()[1].SetFont(font)
     dlg.SetSize((750, 560))
