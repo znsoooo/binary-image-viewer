@@ -80,7 +80,7 @@ class MyFileDropTarget(wx.FileDropTarget):
 
 class BitmapWindow(wx.ScrolledWindow):
     def __init__(self, parent):
-        wx.ScrolledWindow.__init__(self, parent, style=wx.BORDER_SUNKEN)
+        wx.ScrolledWindow.__init__(self, parent)
 
         self.SetScrollRate(20, 20)
         self.bmp = wx.StaticBitmap(self)
