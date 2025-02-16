@@ -372,7 +372,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self.Close(), id=105)
 
         self.Bind(wx.EVT_MENU, lambda e: Help(), id=201)
-        self.Bind(wx.EVT_MENU, lambda e: donate.DonateDialog(), id=202)
+        self.Bind(wx.EVT_MENU, lambda e: donate.DonateDialog(self), id=202)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(__homepage__), id=203)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -403,6 +403,6 @@ class MyFrame(wx.Frame):
 
 
 if __name__ == '__main__':
-    app = wx.App(False)
+    app = wx.App()
     frame = MyFrame()
     app.MainLoop()

@@ -46,8 +46,8 @@ Dj6+XQ34R228SCGjn3fQwtP2zvzBNuuRTghnmxDONiGcEM42IZxtQjhbVfs3AP4fzyM0Afs/AAAAAElF
 
 
 class DonateDialog(wx.Dialog):
-    def __init__(self):
-        wx.Dialog.__init__(self, None, -1, 'Donate')
+    def __init__(self, parent=None):
+        wx.Dialog.__init__(self, parent, -1, 'Donate')
 
         data = base64.b64decode(b64_data)
         stream = io.BytesIO(data)
