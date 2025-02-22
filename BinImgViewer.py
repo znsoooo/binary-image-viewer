@@ -156,6 +156,9 @@ class MyPanel(wx.Panel):
 
         self.SetSizer(box)
 
+        self.bmp.Bind(wx.EVT_CHAR_HOOK, self.OnImageKeyDown)
+        self.bmp.Bind(wx.EVT_MOUSEWHEEL, self.OnPathWheelDown)
+
         self.path.Bind(wx.EVT_TEXT, self.ViewImage)
         self.width.Bind(wx.EVT_TEXT, self.ViewImage)
         self.height.Bind(wx.EVT_TEXT, self.ViewImage)
@@ -201,12 +204,21 @@ class MyPanel(wx.Panel):
             path = dlg.GetPath()
             self.SaveImage(path)
 
-    def OnPathKeyDown(self, evt):
-        code = evt.GetKeyCode()
-        if code == wx.WXK_DOWN:
-            self.ViewNext(1)
-        elif code == wx.WXK_UP:
+    def OnImageKeyDown(self, evt):
+        key = evt.GetKeyCode()
+        if key in [wx.WXK_LEFT, wx.WXK_UP, wx.WXK_PAGEUP]:
             self.ViewNext(-1)
+        elif key in [wx.WXK_RIGHT, wx.WXK_DOWN, wx.WXK_PAGEDOWN]:
+            self.ViewNext(1)
+        else:
+            evt.Skip()
+
+    def OnPathKeyDown(self, evt):
+        key = evt.GetKeyCode()
+        if key == wx.WXK_UP:
+            self.ViewNext(-1)
+        elif key == wx.WXK_DOWN:
+            self.ViewNext(1)
         else:
             evt.Skip()
 
