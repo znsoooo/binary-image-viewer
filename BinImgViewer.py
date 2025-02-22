@@ -116,18 +116,25 @@ class MyPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
+        # - Init parameters --------------------
+
         self.parent = parent
-        self.bmp = BitmapWindow(self)
 
         self.last_path = None
         self.last_data = None
-        self.last_img  = None
+        self.last_img = None
         self.last_channels = None
 
-        self.path     = wx.TextCtrl(self)
-        self.width    = MySpinCtrl(self, -1, min=1, max=wx.INT32_MAX, size=(80, -1))
-        self.height   = MySpinCtrl(self, -1, min=1, max=wx.INT32_MAX, size=(80, -1))
+        # - Add widgets --------------------
+
+        self.bmp = BitmapWindow(self)
+
+        self.path = wx.TextCtrl(self)
+        self.width = MySpinCtrl(self, -1, min=1, max=wx.INT32_MAX, size=(80, -1))
+        self.height = MySpinCtrl(self, -1, min=1, max=wx.INT32_MAX, size=(80, -1))
         self.channels = MySpinCtrl(self, -1, min=1, max=4, size=(80, -1))
+
+        # - Set layout --------------------
 
         border = 4
 
@@ -155,6 +162,8 @@ class MyPanel(wx.Panel):
         box.Add(box3,     0, wx.ALL | wx.ALIGN_CENTER, border)
 
         self.SetSizer(box)
+
+        # - Bind functions --------------------
 
         self.bmp.Bind(wx.EVT_CHAR_HOOK, self.OnImageKeyDown)
         self.bmp.Bind(wx.EVT_MOUSEWHEEL, self.OnPathWheelDown)
