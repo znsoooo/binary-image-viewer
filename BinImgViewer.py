@@ -156,6 +156,7 @@ class MyPanel(wx.Panel):
         box3 = wx.BoxSizer(wx.VERTICAL)
         box3.Add(box1, 1, wx.ALL | wx.EXPAND, border)
         box3.Add(box2, 1, wx.ALL | wx.EXPAND, border)
+        box3.Hide(1)  # hide for deprecated function
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.bmp, 1, wx.ALL | wx.EXPAND, 0)
