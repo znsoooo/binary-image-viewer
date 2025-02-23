@@ -194,7 +194,9 @@ class MyPanel(wx.Panel):
         self.SetPath(path)
 
     def OnOpen(self, evt):
+        path = self.GetPath()
         dlg = wx.FileDialog(self, 'Open file',
+            defaultDir=osp.dirname(path),
             wildcard='Binary file|*.binp;*.bin|Image file|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All file|*.*',
             style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
