@@ -6,6 +6,8 @@ The binary image files format arranged in a row-major order, supporting 1-channe
 
 It also supports reading other formats of image files, provide channels conversion and file saving.
 
+Download release version: <https://github.com/znsoooo/binary-image-viewer/releases>
+
 
 ## Features
 
