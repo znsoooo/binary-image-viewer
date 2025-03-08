@@ -38,7 +38,7 @@ It also supports reading other formats of image files, provide channels conversi
 - __QQ:__ 11313213
 - __Email:__ <lsx7@sina.com>
 - __GitHub:__ <https://github.com/znsoooo/binary-image-viewer>
-- __License:__ MIT License. Copyright (c) 2024 Shixian Li (znsoooo). All Rights Reserved.
+- __License:__ MIT License. Copyright (c) 2024-2025 Shixian Li (znsoooo). All Rights Reserved.
 
 
 ## Notice!!

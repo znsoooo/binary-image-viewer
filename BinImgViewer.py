@@ -18,7 +18,7 @@ License
 - QQ: 11313213
 - Email: lsx7@sina.com
 - GitHub: https://github.com/znsoooo/binary-image-viewer
-- License: MIT License. Copyright (c) 2024 Shixian Li (znsoooo). All Rights Reserved.
+- License: MIT License. Copyright (c) 2024-2025 Shixian Li (znsoooo). All Rights Reserved.
 
 """
 
@@ -38,7 +38,7 @@ import wx
 import donate
 
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 __title__ = 'Binary Image Viewer'
 __homepage__ = 'https://github.com/znsoooo/binary-image-viewer'
 
