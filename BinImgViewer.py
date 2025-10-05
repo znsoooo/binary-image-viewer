@@ -28,7 +28,6 @@ import os.path as osp
 import re
 import csv
 import sys
-import math
 import itertools
 import traceback
 import webbrowser
@@ -41,6 +40,102 @@ import donate
 __version__ = '1.1.0'
 __title__ = 'Binary Image Viewer'
 __homepage__ = 'https://github.com/znsoooo/binary-image-viewer'
+
+
+class Serial:
+    def __init__(self, nums, default=1):
+        self.nums = sorted(nums)
+        self.last = default
+
+    def __getitem__(self, item):
+        return self.GetClosest(item)
+
+    def __repr__(self):
+        return str(self.last)
+
+    def SetValue(self, value):
+        self.last = value
+        return self.last
+
+    def GetClosest(self, value):
+        if value == self.last:
+            return self.last
+        if value > self.last:
+            if value >= self.nums[-1]:
+                return self.SetValue(self.nums[-1])
+            for v in self.nums:
+                if v >= value:
+                    return self.SetValue(v)
+        if value < self.last:
+            if value <= self.nums[0]:
+                return self.SetValue(self.nums[0])
+            for v in reversed(self.nums):
+                if v <= value:
+                    return self.SetValue(v)
+        return self.last
+
+
+class FlexShape:
+    def __init__(self, size, width=None):
+        self.size = size
+
+        self.widths = {}
+        self.heights = {}
+        for ch in [1, 3, 4]:
+            if self.size % ch == 0:
+                divisors = self.GetDivisors(self.size // ch)
+                self.widths[ch] = Serial(divisors)
+                self.heights[ch] = Serial(divisors)
+        self.channels = Serial(self.widths)
+
+        self.last = self.SetWidth(width or size ** 0.5)
+
+    def GetDivisors(self, n):
+        divisors = []
+        for i in range(1, int(n ** 0.5) + 1):
+            if n % i == 0:
+                divisors.append(i)
+                if i != n // i:
+                    divisors.append(n // i)
+        return sorted(divisors)
+
+    def SetShape(self, width, height, channels):
+        assert width * height * channels == self.size, (width, height, channels, self.size)
+        ch = self.channels.SetValue(channels)
+        width = self.widths[ch].SetValue(width)
+        height = self.heights[ch].SetValue(height)
+        self.last = width, height, ch
+        return self.last
+
+    def SetWidth(self, width):
+        ch = self.channels.last
+        width = self.widths[ch][width]
+        height = self.size // width // ch
+        return self.SetShape(width, height, ch)
+
+    def SetHeight(self, height):
+        ch = self.channels.last
+        height = self.heights[ch][height]
+        width = self.size // height // ch
+        return self.SetShape(width, height, ch)
+
+    def SetChannels(self, ch):
+        last_ch = self.channels.last
+        ch = self.channels[ch]
+        if ch == last_ch:
+            return self.last
+        height = self.heights[last_ch].last
+        if ch == 3:
+            if height % 3 == 0:
+                height //= 3
+        elif ch == 4:
+            if height % 2 == 0:
+                height //= 2
+            if height % 2 == 0:
+                height //= 2
+        height *= last_ch
+        width = self.size // height // ch
+        return self.SetShape(width, height, ch)
 
 
 def protect(fn):
@@ -123,7 +218,7 @@ class MyPanel(wx.Panel):
         self.last_path = None
         self.last_data = None
         self.last_img = None
-        self.last_channels = None
+        self.last_shape = None
 
         # - Add widgets --------------------
 
@@ -278,13 +373,6 @@ class MyPanel(wx.Panel):
         height = self.height.GetValue()
         channels = self.channels.GetValue()
 
-        if channels == 2:
-            if self.last_channels is None:
-                self.last_channels = channels
-            channels = 1 if self.last_channels > 2 else 3
-            self.channels.SetValue(channels)
-            self.last_channels = channels
-
         if not os.path.isfile(path):
             self.bmp.SetBitmap(wx.Bitmap())
             self.parent.SetTitle(__title__)
@@ -322,18 +410,20 @@ class MyPanel(wx.Panel):
         if path != self.last_path:
             with open(path, 'rb') as f:
                 self.last_data = f.read()
-        data = self.last_data
+            self.last_shape = FlexShape(len(self.last_data), width)
 
-        data_size = len(data)
-        if data_size != width * height * channels:
-            if self.height.HasFocus():
-                width = math.ceil(data_size / height / channels)
-                self.width.SetValue(width)
-            else:
-                height = math.ceil(data_size / width / channels)
-                self.height.SetValue(height)
-            diff_size = width * height * channels - data_size
-            data = data + b'\0' * diff_size
+        data = self.last_data
+        shape = self.last_shape
+
+        if self.width.HasFocus():
+            width, height, channels = shape.SetWidth(width)
+        elif self.height.HasFocus():
+            width, height, channels = shape.SetHeight(height)
+        else:
+            width, height, channels = shape.SetChannels(channels)
+        self.width.SetValue(width)
+        self.height.SetValue(height)
+        self.channels.SetValue(channels)
 
         bmp = wx.Bitmap()
         if max(width, height) > 10000:
