@@ -1,7 +1,7 @@
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1, 1, 0, 0),
-    prodvers=(1, 1, 0, 0),
+    filevers=(1, 2, 0, 0),
+    prodvers=(1, 2, 0, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x4,
@@ -16,13 +16,13 @@ VSVersionInfo(
         '040904E4',
         [StringStruct('CompanyName', 'Shixian Li'),
         StringStruct('FileDescription', 'Binary Image Viewer'),
-        StringStruct('FileVersion', '1.1.0'),
+        StringStruct('FileVersion', '1.2.0'),
         StringStruct('InternalName', 'BinImgViewer.exe'),
         StringStruct('LegalCopyright', 'Copyright (c) 2024-2025 Shixian Li (znsoooo)'),
         StringStruct('LegalTrademarks', ''),
         StringStruct('OriginalFilename', 'BinImgViewer.exe'),
         StringStruct('ProductName', 'Binary Image Viewer'),
-        StringStruct('ProductVersion', '1.1.0'),
+        StringStruct('ProductVersion', '1.2.0'),
         StringStruct('Comments', 'MIT License')])
       ]),
     VarFileInfo([VarStruct('Translation', [0, 1200])])
